@@ -86,7 +86,7 @@ int main(int argc, char *argv[]) {
     cudaMemcpy(d_A, h_A, size, cudaMemcpyHostToDevice);
     cudaMemcpy(d_B, h_B, size, cudaMemcpyHostToDevice);
 
-    // FIX HERE
+    // ADD PARAMS
     dim3 threadsPerBlocks();
     dim3 numBlocks();
 
