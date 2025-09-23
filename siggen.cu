@@ -5,12 +5,12 @@
 //         {4, 5, 6}
 //     },
 //     {
-//         {7, 8, 9},
-//         {10, 11, 12}
+//        {7, 8, 9},
+//        {10, 11, 12}
 //     },
 //     {
-// 		{13, 14, 15},
-// 		{16, 17, 18}
+// 		  {13, 14, 15},
+// 		  {16, 17, 18}
 //     }
 // };
 
@@ -25,8 +25,8 @@
 //         {10, 11, 12}
 //     },
 //     {
-// 		{13, 14, 15},
-// 		{16, 17, 18}
+// 		   {13, 14, 15},
+// 		   {16, 17, 18}
 //     }
 // };
 
@@ -41,6 +41,17 @@
 
 __global__ void f_siggen(float* A, float* B, float* C, int rows, int cols) {
     
+    int col = blockIdx.x * blockDim.x + threadIdx.x
+    int row = blockIdx.y * blockDim.y + threadIdx.y
+
+    if () {
+
+    } else if (i < rows && j < cols) {
+        C[i * cols + j] = (float)0
+    } else {
+
+    }
+
 }
 
 int main(int argc, char *argv[]) {
@@ -73,12 +84,12 @@ int main(int argc, char *argv[]) {
     cudaMalloc((void**)&d_B, size);
     cudaMalloc((void**)&d_C, size);
 
-    //    for (int i = 0; i < rows * cols; ++i) {
-
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
-            h_A[i,j]=(float) ((i+j)%100)/2.0;
-            h_B[i,j]=(float) 3.25*((i+j)%100);
+            int index = i * cols + j;
+
+            h_A[index]=(float) ((i+j)%100)/2.0;
+            h_B[index]=(float) 3.25*((i+j)%100);
         }
     }
 
@@ -86,11 +97,21 @@ int main(int argc, char *argv[]) {
     cudaMemcpy(d_A, h_A, size, cudaMemcpyHostToDevice);
     cudaMemcpy(d_B, h_B, size, cudaMemcpyHostToDevice);
 
-    // ADD PARAMS
-    dim3 threadsPerBlocks();
-    dim3 numBlocks();
+    // generic thread blocks
+    dim3 threadsPerBlock(16, 16);
 
-    f_siggen<<<block, threadsPerBlocks>>(d_A, d_B, D_C, rows, cols);
+    // round up
+    int x = (cols + threadsPerBlock.x - 1) / threadsPerBlock.x;
+    int y = (rows + threadsPerBlock.y - 1) / threadsPerBlock.y;
+
+    dim3 numBlocks(x, y);
+
+    f_siggen<<<numBlocks, threadsPerBlock>>>(d_A, d_B, d_C, rows, cols);
+    cudaError_t err = cudaDeviceSynchronize();
+
+    if (err != cudaSuccess) {
+        fprintf(stderr, "error: %s\n", cudaGetErrorString(err));
+    }
 
     cudaMemcpy(h_C, d_C, size, cudaMemcpyDeviceToHost);
 
