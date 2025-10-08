@@ -9,8 +9,8 @@
 //        {10, 11, 12}
 //     },
 //     {
-// 		  {13, 14, 15},
-// 		  {16, 17, 18}
+//                {13, 14, 15},
+//                {16, 17, 18}
 //     }
 // };
 
@@ -25,8 +25,8 @@
 //         {10, 11, 12}
 //     },
 //     {
-// 		   {13, 14, 15},
-// 		   {16, 17, 18}
+//                 {13, 14, 15},
+//                 {16, 17, 18}
 //     }
 // };
 
@@ -41,17 +41,15 @@
 
 __global__ void f_siggen(float* A, float* B, float* C, int rows, int cols) {
     
-    int col = blockIdx.x * blockDim.x + threadIdx.x
-    int row = blockIdx.y * blockDim.y + threadIdx.y
+    //int col = blockIdx.x * blockDim.x + threadIdx.x
+    //int row = blockIdx.y * blockDim.y + threadIdx.y
 
-    if () {
+    // i = row
+    // j = col
+    int i = threadIdx.y;
+    int j = threadIdx.x;
 
-    } else if (i < rows && j < cols) {
-        C[i * cols + j] = (float)0
-    } else {
-
-    }
-
+    C[i * cols + j] = A[(i-1) * cols + j] + A[i * cols + j] + A[(i+1) * cols + j] - B[i * cols + j-2] - B[i * cols + j-1] - B[i * cols + j];
 }
 
 int main(int argc, char *argv[]) {
@@ -98,13 +96,13 @@ int main(int argc, char *argv[]) {
     cudaMemcpy(d_B, h_B, size, cudaMemcpyHostToDevice);
 
     // generic thread blocks
-    dim3 threadsPerBlock(16, 16);
+    dim3 threadsPerBlock(rows, cols);
 
     // round up
-    int x = (cols + threadsPerBlock.x - 1) / threadsPerBlock.x;
-    int y = (rows + threadsPerBlock.y - 1) / threadsPerBlock.y;
+    //int x = (cols + threadsPerBlock.x - 1) / threadsPerBlock.x;
+    //int y = (rows + threadsPerBlock.y - 1) / threadsPerBlock.y;
 
-    dim3 numBlocks(x, y);
+    dim3 numBlocks(1, 1);
 
     f_siggen<<<numBlocks, threadsPerBlock>>>(d_A, d_B, d_C, rows, cols);
     cudaError_t err = cudaDeviceSynchronize();
@@ -122,9 +120,17 @@ int main(int argc, char *argv[]) {
 
     cudaDeviceReset();
 
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
+            printf("%f ", h_C[i * cols + j]);
+        }
+        printf("\n");
+    }
+
     //cleanup host
     free(h_A);
     free(h_B);
     free(h_C);
+
     
 }
