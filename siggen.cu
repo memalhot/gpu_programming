@@ -38,6 +38,10 @@
 #include <inttypes.h>
 #include <time.h>
 
+#define CLOCK_SOURCE CLOCK_MONOTONIC
+#define NSEC_IN_SECOND (1000000000)
+
+typedef struct timespec ts_t;
 
 __global__ void f_siggen(float* A, float* B, float* C, int rows, int cols) {
     
@@ -104,6 +108,16 @@ int main(int argc, char *argv[]) {
 
     dim3 numBlocks(1, 1);
 
+
+    static inline int ts_now(ts_t *now) {
+    if (clock_gettime(CLOCK_SOURCE, now) == -1) {
+        perror("clock_gettime");
+        assert(0);
+        return 0;
+    }
+    return 1;
+    }
+
     f_siggen<<<numBlocks, threadsPerBlock>>>(d_A, d_B, d_C, rows, cols);
     cudaError_t err = cudaDeviceSynchronize();
 
@@ -112,6 +126,15 @@ int main(int argc, char *argv[]) {
     }
 
     cudaMemcpy(h_C, d_C, size, cudaMemcpyDeviceToHost);
+
+
+    static inline uint64_t ts_diff(ts_t start, ts_t end)
+        {
+        uint64_t diff =
+            ((end.tv_sec - start.tv_sec) * NSEC_IN_SECOND) +
+            (end.tv_nsec - start.tv_nsec);
+        return diff;
+        } 
 
     //cleanup deivce
     cudaFree(d_A);

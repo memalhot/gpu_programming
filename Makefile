@@ -7,8 +7,8 @@ NVCC = nvcc
 GENCODE = -gencode arch=compute_70,code=sm_70
 
 # Targets
-TARGET = hello
-SRC = hello.cu
+TARGET = siggen
+SRC = siggen.cu
 
 # Default rule
 all: $(TARGET)
